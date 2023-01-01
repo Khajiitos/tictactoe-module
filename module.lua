@@ -46,6 +46,7 @@ function TicTacToeGame:new(player1, player2)
     local o = {}
     setmetatable(o, self)
     self.__index = self
+    o.board = {}
     o.player1 = player1
     o.player2 = player2
     if player2 ~= nil then
@@ -399,7 +400,8 @@ end
 
 function eventNewPlayer(playerName)
     initPlayer(playerName)
-    tfm.exec.respawnPlayer(playerName)
+    --tfm.exec.respawnPlayer(playerName)
+    spawnTeacher()
 end
 
 function eventPlayerLeft(playerName)
@@ -455,27 +457,29 @@ function invitePlayer(inviter, invitee)
     end
 end
 
-tfm.exec.disableAfkDeath(true);
-tfm.exec.disableAutoNewGame(true);
-tfm.exec.disableAutoScore(true);
-tfm.exec.disableAutoShaman(true);
-tfm.exec.disableAutoTimeLeft(true);
-tfm.exec.disablePhysicalConsumables(true);
-tfm.exec.newGame(7923834, false);
-tfm.exec.setGameTime(0, true);
+tfm.exec.disableAfkDeath(true)
+tfm.exec.disableAutoNewGame(true)
+tfm.exec.disableAutoScore(true)
+tfm.exec.disableAutoShaman(true)
+tfm.exec.disableAutoTimeLeft(true)
+tfm.exec.disablePhysicalConsumables(true)
+tfm.exec.newGame(7923834, false)
+tfm.exec.setGameTime(0, true)
 system.disableChatCommandDisplay("invite", true)
 system.disableChatCommandDisplay("help", true)
 ui.setMapName("TicTacToe");
 
-tfm.exec.addNPC('Teacher', {
-    title = 327,
-    lookLeft = false,
-    interactive = true,
-    female = true,
-    look = '28;0,8,0,72,0,101,0,0,0',
-    x = 25,
-    y = 338
-})
+function spawnTeacher()
+    tfm.exec.addNPC('Teacher', {
+        title = 327,
+        lookLeft = false,
+        interactive = true,
+        female = true,
+        look = '28;0,8,0,72,0,101,0,0,0',
+        x = 25,
+        y = 338
+    })
+end
 
 function eventTalkToNPC(playerName, npcName)
     if npcName == 'Teacher' then
@@ -501,3 +505,5 @@ end
 for playerName in pairs(tfm.get.room.playerList) do
     initPlayer(playerName)
 end
+
+spawnTeacher()
