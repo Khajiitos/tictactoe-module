@@ -320,16 +320,22 @@ function TicTacToeGame:winnerCheck()
         end
     end
 
-    if check(self.board, 1, 2, 3) ~= 0 then return checkResult end
-    if check(self.board, 4, 5, 6) ~= 0 then return checkResult end
-    if check(self.board, 7, 8, 9) ~= 0 then return checkResult end
+    local possibilities = {
+        {1, 2, 3},
+        {4, 5, 6},
+        {7, 8, 9},
+        {1, 4, 7},
+        {2, 5, 8},
+        {3, 6, 9},
+        {1, 5, 9},
+        {3, 5, 7}
+    }
 
-    if check(self.board, 1, 4, 7) ~= 0 then return checkResult end
-    if check(self.board, 2, 5, 8) ~= 0 then return checkResult end
-    if check(self.board, 3, 6, 9) ~= 0 then return checkResult end
-
-    if check(self.board, 1, 5, 9) ~= 0 then return checkResult end
-    if check(self.board, 3, 5, 7) ~= 0 then return checkResult end
+    for i, possibility in pairs(possibilities) do
+        if check(self.board, possibility[1], possibility[2], possibility[3]) then
+            return checkResult
+        end
+    end
 
     for i = 1, 9 do
         if self.board[i] == 0 then
