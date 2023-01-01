@@ -2,6 +2,7 @@
     Popups:
     1 - Help popup
     2 - Game over popup
+    3 - Would you like to play with the teacher? popup
 
     Text areas:
     1 - Question mark, opens help
@@ -25,6 +26,8 @@ TicTacToeGame = {
     turn = 1,
     color = 0xFFFFFF,   
     board = {},
+    isWithBot = false,
+    gameFinished = false
 }
 
 GameFinishReason = {
@@ -45,7 +48,11 @@ function TicTacToeGame:new(player1, player2)
     self.__index = self
     o.player1 = player1
     o.player2 = player2
-    o.color = math.random(0, 0xFFFFFF)
+    if player2 ~= nil then
+        o.color = math.random(0, 0xFFFFFF)
+    else
+        o.color = 0x009d9d
+    end
     for i = 1, 9 do
         o.board[i] = 0
     end
@@ -54,16 +61,21 @@ end
 
 function TicTacToeGame:start()
     playerInvitedPlayer[self.player1] = nil
-    playerInvitedPlayer[self.player2] = nil
     ui.removeTextArea(2, self.player1)
-    ui.removeTextArea(2, self.player2)
     ui.removeTextArea(3, self.player1)
-    ui.removeTextArea(3, self.player2)
-    tfm.exec.movePlayer(self.player1, 380, 200, false, 0, 0, false)
-    tfm.exec.movePlayer(self.player2, 420, 200, false, 0, 0, false)
-    tfm.exec.linkMice(self.player1, self.player2, true)
     tfm.exec.setNameColor(self.player1, self.color)
-    tfm.exec.setNameColor(self.player2, self.color)
+
+    if not self.isWithBot then
+        playerInvitedPlayer[self.player2] = nil
+        tfm.exec.setNameColor(self.player2, self.color)
+        ui.removeTextArea(3, self.player2)
+        ui.removeTextArea(2, self.player2)
+        tfm.exec.movePlayer(self.player1, 380, 200, false, 0, 0, false)
+        tfm.exec.movePlayer(self.player2, 420, 200, false, 0, 0, false)
+        tfm.exec.setNameColor(self.player2, self.color)
+        tfm.exec.linkMice(self.player1, self.player2, true)
+    end
+
     self:drawBoard()
 end
 
@@ -83,27 +95,29 @@ function TicTacToeGame:finish(reason, causingPlayer)
             ui.removeTextArea(i, player)
         end
         tfm.exec.setNameColor(player, 0xFFFFFF)
-
-        local gameOverPopup = function(playerName, text)
-            ui.addPopup(2, 0, '<font size="20"><p align="center"><b>Game over</b></p></font><br><font size="13">' .. text .. "</font>", playerName, 300, 200, 200, true)
-        end
-
-        if reason == GameFinishReason.PLAYER_QUIT then
-            gameOverPopup(self:opponent(causingPlayer), 'Your opponent left the TicTacToe game.')
-        elseif reason == GameFinishReason.PLAYER_1_WON or reason == GameFinishReason.PLAYER_2_WON then
-            gameOverPopup(causingPlayer, '<p align="center"><font color="#00FF00"><b>You won! :)</b></font></p>')
-            gameOverPopup(self:opponent(causingPlayer), '<p align="center"><font color="#FF0000"><b>You lost! :(</b></font></p>')
-            tfm.exec.playEmote(causingPlayer, 1)
-            tfm.exec.playEmote(self:opponent(causingPlayer), 2)
-        elseif reason == GameFinishReason.DRAW then
-            gameOverPopup(self.player1, 'The game ended with a draw.')
-            gameOverPopup(self.player2, 'The game ended with a draw.')
-            tfm.exec.playEmote(self.player1, 7)
-            tfm.exec.playEmote(self.player2, 7)
-        elseif reason == GameFinishReason.PLAYER_DISCONNECTED then
-            gameOverPopup(self:opponent(causingPlayer), 'Your opponent left the room.')
-        end
     end
+
+    local gameOverPopup = function(playerName, text)
+        ui.addPopup(2, 0, '<font size="20"><p align="center"><b>Game over</b></p></font><br><font size="13">' .. text .. "</font>", playerName, 300, 200, 200, true)
+    end
+
+    if reason == GameFinishReason.PLAYER_QUIT then
+        gameOverPopup(self:opponent(causingPlayer), 'Your opponent left the TicTacToe game.')
+    elseif reason == GameFinishReason.PLAYER_1_WON or reason == GameFinishReason.PLAYER_2_WON then
+        gameOverPopup(causingPlayer, '<p align="center"><font color="#00FF00"><b>You won! :)</b></font></p>')
+        gameOverPopup(self:opponent(causingPlayer), '<p align="center"><font color="#FF0000"><b>You lost! :(</b></font></p>')
+        tfm.exec.playEmote(causingPlayer, 1)
+        tfm.exec.playEmote(self:opponent(causingPlayer), 2)
+    elseif reason == GameFinishReason.DRAW then
+        gameOverPopup(self.player1, 'The game ended with a draw.')
+        gameOverPopup(self.player2, 'The game ended with a draw.')
+        tfm.exec.playEmote(self.player1, 7)
+        tfm.exec.playEmote(self.player2, 7)
+    elseif reason == GameFinishReason.PLAYER_DISCONNECTED then
+        gameOverPopup(self:opponent(causingPlayer), 'Your opponent left the room.')
+    end
+
+    self.gameFinished = true
     
     if (isPlayerHere(self.player1)) then finishGameForPlayer(self.player1, self) end
     if (isPlayerHere(self.player2)) then finishGameForPlayer(self.player2, self) end
@@ -164,8 +178,12 @@ function TicTacToeGame:drawBoard()
         ui.addTextArea(16, '<p align="center"><font size="18">Playing as: <b>' .. ((playerNumber == 1) and 'X' or 'O') ..'</b></font></p>', player, 200, 325, 400, 30, nil, nil, 0.0, true)
         ui.addTextArea(17, '<a href="event:exitGame"><p align="center"><font size="17"><b>Exit</b></font></p></a>', player, 300, 360, 200, 24, 0x324650, 0x212F36, 0.95, true)
     end
-    drawBoardForPlayer(self.player1, self.player2, self)
-    drawBoardForPlayer(self.player2, self.player1, self)
+    if self.isWithBot then
+        drawBoardForPlayer(self.player1, 'Teacher', self)
+    else
+        drawBoardForPlayer(self.player1, self.player2, self)
+        drawBoardForPlayer(self.player2, self.player1, self)
+    end
 end
 
 function TicTacToeGame:setField(fieldNum, fieldVal)
@@ -205,18 +223,63 @@ function TicTacToeGame:playerName(playerNumber)
     end
 end
 
-function TicTacToeGame:attemptPlaceOnField(playerName, fieldNum)
-    local playerNumber = self:playerNumber(playerName)
+function TicTacToeGame:attemptPlaceOnField(playerNumber, fieldNum)
     if playerNumber == self.turn then
         if self.board[fieldNum] == 0 then
-            if self.turn == 1 then
-                self.turn = 2
-            else
-                self.turn = 1
+            if not self.isWithBot then
+                if self.turn == 1 then
+                    self.turn = 2
+                else
+                    self.turn = 1
+                end
             end
             self:setField(fieldNum, playerNumber)
+
+            if self.isWithBot and not self.gameFinished then
+                self:placeSomethingAsBot()
+            end
         end
     end
+end
+
+function TicTacToeGame:placeSomethingAsBot()
+    emptyFields = {}
+
+    for fieldNum, fieldVal in ipairs(self.board) do
+        if fieldVal == 0 then
+            emptyFields[#emptyFields + 1] = fieldNum
+        end
+    end
+
+    --[[
+        If the bot can win in its turn, it will
+        If the opponent would win in their next turn, the bot will block them
+        Else the bot will place randomly
+
+        so many loops smh
+    ]]
+
+    for i, fieldNum in ipairs(emptyFields) do
+        self.board[fieldNum] = 2
+        if self:winnerCheck() == 2 then
+            self:setField(fieldNum, 2)
+            return
+        else
+            self.board[fieldNum] = 0
+        end
+    end
+
+    for i, fieldNum in ipairs(emptyFields) do
+        self.board[fieldNum] = 1
+        if self:winnerCheck() == 1 then
+            self:setField(fieldNum, 2)
+            return
+        else
+            self.board[fieldNum] = 0
+        end
+    end
+
+    self:setField(emptyFields[math.random(1, #emptyFields)], 2)
 end
 
 function TicTacToeGame:winnerCheck()
@@ -267,8 +330,9 @@ Welcome to the module!
 Here you can play TicTacToe with another player in the room.
 
 To invite a player to play with you, either click on the player or use the command <b>!invite <i>Player#XXXX</i></b>.
+Or you could play with the Teacher by clicking on her.
 
-After two players have invited themselves, a board will appear.
+After two players have invited themselves, or you chose to play with the teacher, a board will appear.
 If it's your turn, you can either click on a field or use 1-9 keys on your keyboard to select a field.
 
 <b>Good luck!</b>
@@ -308,7 +372,7 @@ function eventTextAreaCallback(textAreaID, playerName, callback)
 
     for match in callback:gmatch("field(%d+)") do
         if playerGame[playerName] then
-            playerGame[playerName]:attemptPlaceOnField(playerName, tonumber(match))
+            playerGame[playerName]:attemptPlaceOnField(playerGame[playerName]:playerNumber(playerName), tonumber(match))
         end
         return
     end
@@ -349,7 +413,7 @@ function eventKeyboard(playerName, keyCode, down, xPlayerPosition, yPlayerPositi
         openHelpPopup(playerName)
     elseif keyCode >= 49 and keyCode <= 57 then -- 1-9
         if playerGame[playerName] then
-            playerGame[playerName]:attemptPlaceOnField(playerName, keyCode - 48)
+            playerGame[playerName]:attemptPlaceOnField(playerGame[playerName]:playerNumber(playerName), keyCode - 48)
         end
     end
 end
@@ -402,6 +466,37 @@ tfm.exec.setGameTime(0, true);
 system.disableChatCommandDisplay("invite", true)
 system.disableChatCommandDisplay("help", true)
 ui.setMapName("TicTacToe");
+
+tfm.exec.addNPC('Teacher', {
+    title = 327,
+    lookLeft = false,
+    interactive = true,
+    female = true,
+    look = '28;0,8,0,72,0,101,0,0,0',
+    x = 25,
+    y = 338
+})
+
+function eventTalkToNPC(playerName, npcName)
+    if npcName == 'Teacher' then
+        if not playerGame[playerName] then
+            ui.addPopup(3, 1, "<p align='center'><font size='18'><b>Teacher</b></font></p><p align='center'>Would you like to play with the teacher?</p>", playerName, 250, 175, 300, true)
+        end
+    end
+end
+
+function eventPopupAnswer(popupID, playerName, answer)
+    if popupID == 3 then
+        if answer == 'yes' then
+            if not playerGame[playerName] then
+                local game = TicTacToeGame:new(playerName, nil)
+                game.isWithBot = true
+                playerGame[game.player1] = game
+                game:start()
+            end
+        end
+    end
+end
 
 for playerName in pairs(tfm.get.room.playerList) do
     initPlayer(playerName)
