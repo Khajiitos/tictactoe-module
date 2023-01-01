@@ -332,7 +332,7 @@ function TicTacToeGame:winnerCheck()
     }
 
     for i, possibility in pairs(possibilities) do
-        if check(self.board, possibility[1], possibility[2], possibility[3]) then
+        if check(self.board, possibility[1], possibility[2], possibility[3]) ~= 0 then
             return checkResult
         end
     end
