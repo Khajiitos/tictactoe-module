@@ -77,7 +77,7 @@ function TicTacToeGame:start()
         tfm.exec.linkMice(self.player1, self.player2, true)
     end
 
-    self:drawBoard()
+    self:initBoard()
 end
 
 function TicTacToeGame:opponent(ofPlayer)
@@ -127,24 +127,49 @@ function TicTacToeGame:finish(reason, causingPlayer)
     tfm.exec.linkMice(self.player1, self.player2, false)
 end
 
-function TicTacToeGame:drawBoard()
-    local drawBoardForPlayer = function(player, opponent, game)
+function TicTacToeGame:initBoard()
+    local initBoardForPlayer = function(player, opponent)
         ui.addTextArea(4, '', player, 200, 50, 400, 300, 0x324650, 0x212F36, 0.9, true)
         ui.addTextArea(5, '<p align="center"><font size="20">Opponent: ' .. opponent .. '</font></p>', player, 200, 50, 400, 30, nil, nil, 0.0, true)
-
-        local playerNumber = self:playerNumber(player)
-
-        if playerNumber == self.turn then
-            ui.addTextArea(6, '<p align="center"><font size="16" color="#00FF00">Your turn!</font></p>', player, 200, 80, 400, 30, nil, nil, 0.0, true)
-        else
-            ui.addTextArea(6, '<p align="center"><font size="16" color="#FF0000">Opponent\'s turn.</font></p>', player, 200, 80, 400, 30, nil, nil, 0.0, true)
-        end
-
+        ui.addTextArea(6, '', player, 200, 80, 400, 30, nil, nil, 0.0, true)
         for i = 0, 2 do
             for j = 0, 2 do
                 local id = 7 + (i * 3) + j
                 local x = 300 + (j) * 75
                 local y = 120 + (i) * 75
+                ui.addTextArea(id, '', player, x, y, 50, 50, 0x324650, 0x212F36, 0.95, true)
+            end
+        end
+        ui.addTextArea(18, '', player, 362.5, 110, 1, 225, 0x627680, 0x627680, 1, true)
+        ui.addTextArea(19, '', player, 437.5, 110, 1, 225, 0x627680, 0x627680, 1, true)
+        ui.addTextArea(20, '', player, 290, 180, 225, 1, 0x627680, 0x627680, 1, true)
+        ui.addTextArea(21, '', player, 290, 255, 225, 1, 0x627680, 0x627680, 1, true)
+        ui.addTextArea(16, '<p align="center"><font size="18">Playing as: <b>' .. ((self:playerNumber(player) == 1) and 'X' or 'O') ..'</b></font></p>', player, 200, 325, 400, 30, nil, nil, 0.0, true)
+        ui.addTextArea(17, '<a href="event:exitGame"><p align="center"><font size="17"><b>Exit</b></font></p></a>', player, 300, 360, 200, 24, 0x324650, 0x212F36, 0.95, true)
+    end
+    if self.isWithBot then
+        initBoardForPlayer(self.player1, 'Teacher')
+    else
+        initBoardForPlayer(self.player1, self.player2)
+        initBoardForPlayer(self.player2, self.player1)
+    end
+    self:updateBoard()
+end
+
+function TicTacToeGame:updateBoard()
+    local updateBoardForPlayer = function(player, game)
+
+        local playerNumber = self:playerNumber(player)
+
+        if playerNumber == self.turn then
+            ui.updateTextArea(6, '<p align="center"><font size="16" color="#00FF00">Your turn!</font></p>', player)
+        else
+            ui.updateTextArea(6, '<p align="center"><font size="16" color="#FF0000">Opponent\'s turn.</font></p>', player)
+        end
+
+        for i = 0, 2 do
+            for j = 0, 2 do
+                local id = 7 + (i * 3) + j
                 local char = ''
                 if self.board[id - 6] == 1 then
                     char = 'X'
@@ -166,24 +191,15 @@ function TicTacToeGame:drawBoard()
                     aStart = '<a href="event:field' .. (id - 6) .. '">'
                     aEnd = '</a>'
                 end
-                ui.addTextArea(id, aStart .. '<p align="center"><font size="34" color="' .. color ..'"><b>' .. char .. '</b></font></p>' .. aEnd, player, x, y, 50, 50, 0x324650, 0x212F36, 0.95, true)
+                ui.updateTextArea(id, aStart .. '<p align="center"><font size="34" color="' .. color ..'"><b>' .. char .. '</b></font></p>' .. aEnd, player)
             end
         end
-
-        ui.addTextArea(18, '', player, 362.5, 110, 1, 225, 0x627680, 0x627680, 1, true)
-        ui.addTextArea(19, '', player, 437.5, 110, 1, 225, 0x627680, 0x627680, 1, true)
-
-        ui.addTextArea(20, '', player, 290, 180, 225, 1, 0x627680, 0x627680, 1, true)
-        ui.addTextArea(21, '', player, 290, 255, 225, 1, 0x627680, 0x627680, 1, true)
-
-        ui.addTextArea(16, '<p align="center"><font size="18">Playing as: <b>' .. ((playerNumber == 1) and 'X' or 'O') ..'</b></font></p>', player, 200, 325, 400, 30, nil, nil, 0.0, true)
-        ui.addTextArea(17, '<a href="event:exitGame"><p align="center"><font size="17"><b>Exit</b></font></p></a>', player, 300, 360, 200, 24, 0x324650, 0x212F36, 0.95, true)
     end
     if self.isWithBot then
-        drawBoardForPlayer(self.player1, 'Teacher', self)
+        updateBoardForPlayer(self.player1, self)
     else
-        drawBoardForPlayer(self.player1, self.player2, self)
-        drawBoardForPlayer(self.player2, self.player1, self)
+        updateBoardForPlayer(self.player1, self)
+        updateBoardForPlayer(self.player2, self)
     end
 end
 
@@ -198,7 +214,7 @@ function TicTacToeGame:setField(fieldNum, fieldVal)
         elseif winnerCheck == 3 then self:finish(GameFinishReason.DRAW, nil) 
         end
     else
-        self:drawBoard()
+        self:updateBoard()
     end
 end
 
