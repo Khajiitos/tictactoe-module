@@ -417,7 +417,7 @@ end
 
 function eventNewPlayer(playerName)
     initPlayer(playerName)
-    --tfm.exec.respawnPlayer(playerName)
+    tfm.exec.respawnPlayer(playerName)
     spawnTeacher()
 end
 
