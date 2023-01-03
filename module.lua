@@ -311,13 +311,7 @@ function TicTacToeGame:winnerCheck()
     checkResult = 0
 
     local check = function(board, a, b, c)
-        if board[a] == board[b] and board[b] == board[c] then
-            checkResult = board[a]
-            return checkResult
-        else
-            checkResult = 0
-            return 0
-        end
+        return (board[a] == board[b] and board[b] == board[c]) and board[a] or 0
     end
 
     local possibilities = {
@@ -332,7 +326,8 @@ function TicTacToeGame:winnerCheck()
     }
 
     for i, possibility in pairs(possibilities) do
-        if check(self.board, possibility[1], possibility[2], possibility[3]) ~= 0 then
+        local checkResult = check(self.board, possibility[1], possibility[2], possibility[3])
+        if checkResult ~= 0 then
             return checkResult
         end
     end
