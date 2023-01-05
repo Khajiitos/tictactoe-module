@@ -308,8 +308,6 @@ function TicTacToeGame:winnerCheck()
 
         TODO: Make this detect draws without it having all fields occupied
     ]]
-    checkResult = 0
-
     local check = function(board, a, b, c)
         return (board[a] == board[b] and board[b] == board[c]) and board[a] or 0
     end
@@ -343,19 +341,21 @@ end
 
 function openHelpPopup(playerName)
     local text = [[
-<p align='center'><font size='20'>TicTacToe</font></p>
-Welcome to the module!
-Here you can play TicTacToe with another player in the room.
+<p align='center'><font size='20' color='#BABD2F'><b>TicTacToe</b></font></p>
+<b>Welcome to the module!</b>
+Here you can play <font color='#BABD2F'>TicTacToe</font> with another player in the room.
 
-To invite a player to play with you, either click on the player or use the command <b>!invite <i>Player#XXXX</i></b>.
-Or you could play with the Teacher by clicking on her.
+To invite a player to play with you, either click on the player or use the command <font color='#6C77C1'><b>!invite</b> Player#XXXX</font>.
 
-After two players have invited themselves, or you chose to play with the teacher, a board will appear.
-If it's your turn, you can either click on a field or use 1-9 keys on your keyboard to select a field.
+Or you could play with the <font color='#009D9D'>Teacher</font> by clicking on her.
 
-<b>Good luck!</b>
-<p align='right'><b><i>Made by Khajiitos#0000</i><b></p>]]
-    ui.addPopup(1, 0, text, playerName, 200, 75, 400, true)
+After two players have invited themselves, or you chose to play with the <font color='#009D9D'>teacher</font>, a board will appear.
+
+If it's your turn, you can either click on a field or use <font color='#C53DFF'><b>1-9</b></font> keys on your keyboard to select a field.
+
+<font color='#2ECF73' size='13'><b>Good luck!</b></font>
+<p align='right'><font color='#606090' size='10'><b><i>Made by Khajiitos#0000</i><b></font></p>]]
+    ui.addPopup(1, 0, text, playerName, 200, 50, 400, true)
 end
 
 function eventChatCommand(playerName, message)
