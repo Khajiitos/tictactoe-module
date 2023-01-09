@@ -64,7 +64,6 @@ function TicTacToeGame:start()
     playerInvitedPlayer[self.player1] = nil
     ui.removeTextArea(2, self.player1)
     ui.removeTextArea(3, self.player1)
-    tfm.exec.setNameColor(self.player1, self.color)
 
     if not self.isWithBot then
         playerInvitedPlayer[self.player2] = nil
@@ -73,8 +72,11 @@ function TicTacToeGame:start()
         ui.removeTextArea(2, self.player2)
         tfm.exec.movePlayer(self.player1, 380, 200, false, 0, 0, false)
         tfm.exec.movePlayer(self.player2, 420, 200, false, 0, 0, false)
-        tfm.exec.setNameColor(self.player2, self.color)
         tfm.exec.linkMice(self.player1, self.player2, true)
+        tfm.exec.setNameColor(self.player1, self.color)
+        tfm.exec.setNameColor(self.player2, self.color)
+    else
+        tfm.exec.setNameColor(self.player1, self.color)
     end
 
     self:initBoard()
